@@ -2,6 +2,7 @@ require 'rails_helper'
 
 RSpec.describe "Tasks", js: true, type: :system do
   let(:user) { create(:user) }
+  let(:task) { create(:task) }
 
   describe 'ログイン前' do
     context 'タスクの新規作成' do
@@ -12,10 +13,27 @@ RSpec.describe "Tasks", js: true, type: :system do
       end
     end
     context 'タスクの編集' do
-      example '新規作成ページへの移動が失敗する' do
-        visit edit_task_path(1)
+      example '編集ページへの移動が失敗する' do
+        visit edit_task_path(task)
         expect(page).to have_content 'Login required'
         expect(current_path).to eq login_path
+      end
+    end
+    context 'タスクの詳細' do
+      example 'タスクの詳細情報が表示される' do
+        visit task_path(task)
+        expect(page).to have_content task.title
+        expect(current_path).to eq task_path(task)
+      end
+    end
+    context 'タスク一覧' do
+      example '全てのユーザーのタスク情報が表示される' do
+        task_list = create_list(:task, 3)
+        visit tasks_path
+        expect(page).to have_content task_list[0].title
+        expect(page).to have_content task_list[1].title
+        expect(page).to have_content task_list[2].title
+        expect(current_path).to eq tasks_path
       end
     end
   end
@@ -53,7 +71,6 @@ RSpec.describe "Tasks", js: true, type: :system do
       example 'タスクの削除が成功する' do
         visit tasks_path
         click_on 'Destroy'
-        save_and_open_page
         expect(page).to have_content 'successfully'
         expect(current_path).to eq tasks_path
         expect(page).not_to have_content task.title
