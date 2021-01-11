@@ -32,4 +32,10 @@ group :development do
   gem 'rails_best_practices'
 end
 
+group :test do
+  gem 'webdrivers'
+  gem 'capybara'
+  gem 'launchy'
+end
+
 gem 'tzinfo-data', platforms: %i[mingw mswin x64_mingw jruby]
