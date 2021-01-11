@@ -2,7 +2,6 @@ require 'rails_helper'
 
 RSpec.describe "Users", type: :system do
   let(:user) { create(:user) }
-  let(:task) { create(:task) }
 
   describe 'ログイン前' do
     describe 'ユーザー新規登録' do
@@ -30,24 +29,21 @@ RSpec.describe "Users", type: :system do
       end
       context '登録済のメールアドレスを使用' do
         example 'ユーザーの新規作成が失敗する' do
+          existed_user = create(:user)
           visit sign_up_path
-          fill_in 'Email', with: user.email
+          fill_in 'Email', with: existed_user.email
           fill_in 'Password', with: 'foobar'
           fill_in 'Password confirmation', with: 'foobar'
           click_button 'SignUp'
           expect(page).to have_content 'has already been taken'
           expect(current_path).to eq users_path
+          expect(page).to have_field 'Email', with: existed_user.email
         end
       end
     end
     describe 'マイページ' do
       context 'ログインしていない状態' do
         example 'マイページへのアクセスが失敗する' do
-          visit sign_up_path
-          fill_in 'Email', with: 'foobar@example.com'
-          fill_in 'Password', with: 'foobar'
-          fill_in 'Password confirmation', with: 'foobar'
-          click_button 'SignUp'
           visit users_path(user)
           expect(page).to have_content 'Login required'
           expect(current_path).to eq login_path
@@ -105,15 +101,11 @@ RSpec.describe "Users", type: :system do
     describe 'マイページ' do
       context 'タスクを作成' do
         example '新規作成したタスクが表示される' do
-          visit new_task_path(user)
-          fill_in 'Title', with: 'title'
-          fill_in 'Content', with: 'content'
-          select 'todo', from: task[status]
-          click_button 'Create Task'
-          expect(page).to have_content 'successfully'
+          create(:task, title: 'test_title', status: :doing, user: user)
           visit user_path(user)
-          expect(page).to have_content 'title'
-          expect(page).to have_content 'todo'
+          expect(page).to have_content 'You have 1 task.'
+          expect(page).to have_content 'test_title'
+          expect(page).to have_content 'doing'
         end
       end
     end
